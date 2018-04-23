@@ -224,17 +224,17 @@ with tf.device('/gpu:0'):
         for t in range(1, T):
           # find the matching boxes. TODO: try with the soft matching function
           if c.match_kind == 'boxes':
-            dists = nnutil.cdist(boxes[t-1], boxes[t])
+            dists = nnutil.cdist(boxes[t], boxes[t-1])
             idxs = tf.argmin(dists, 1, 'idxs')
             state_prev = tf.gather(states[t-1], idxs)
           elif c.match_kind == 'hidden':
             # TODO: actually it makes more sense to compare on states
-            dists = nnutil.cdist(hidden[t-1], hidden[t])
+            dists = nnutil.cdist(hidden[t], hidden[t-1])
             idxs = tf.argmin(dists, 1, 'idxs')
             state_prev = tf.gather(states[t-1], idxs)
           elif c.match_kind == 'hidden-soft':
-            dists = nnutil.cdist(hidden[t-1], hidden[t])
-            weights = slim.softmax(dists)
+            dists = nnutil.cdist(hidden[t], hidden[t-1])
+            weights = slim.softmax(-dists)
             state_prev = tf.matmul(weights, states[t-1])
           else:
             raise RuntimeError('Unknown match_kind: %s' % c.match_kind)
